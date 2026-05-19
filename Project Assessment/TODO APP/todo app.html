@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo App</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      background:#07122b;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .container{
+      width:100%;
+      max-width:720px;
+      background:#f1f1f1;
+      padding:35px;
+      border-radius:25px;
+    }
+
+    h1{
+      text-align:center;
+      color:#07122b;
+      font-size:55px;
+      margin-bottom:30px;
+    }
+
+    /* Status Box */
+
+    .status-box{
+      background:#d9dee6;
+      padding:20px;
+      border-radius:15px;
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:30px;
+      font-size:18px;
+      font-weight:bold;
+    }
+
+    /* Input Area */
+
+    .input-area{
+      display:flex;
+      gap:15px;
+      margin-bottom:25px;
+    }
+
+    .input-area input{
+      flex:1;
+      padding:18px;
+      border:2px solid #c4c4c4;
+      border-radius:15px;
+      font-size:18px;
+      outline:none;
+    }
+
+    .input-area button{
+      padding:18px 25px;
+      border:none;
+      border-radius:15px;
+      background:#2f64e8;
+      color:white;
+      font-size:18px;
+      cursor:pointer;
+    }
+
+    /* Error */
+
+    .error{
+      color:red;
+      margin-bottom:15px;
+      font-size:15px;
+    }
+
+    /* Task List */
+
+    .task-list{
+      display:flex;
+      flex-direction:column;
+      gap:15px;
+    }
+
+    .task{
+      background:#d9dee6;
+      padding:18px;
+      border-radius:15px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .task span{
+      font-size:20px;
+    }
+
+    .completed span{
+      text-decoration:line-through;
+      color:gray;
+    }
+
+    /* Buttons */
+
+    .buttons{
+      display:flex;
+      gap:10px;
+    }
+
+    .buttons button{
+      border:none;
+      padding:12px 18px;
+      border-radius:10px;
+      color:white;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .done-btn{
+      background:#1ea446;
+    }
+
+    .edit-btn{
+      background:#f59e0b;
+    }
+
+    .delete-btn{
+      background:#e52424;
+    }
+
+    .empty{
+      text-align:center;
+      margin-top:15px;
+      color:gray;
+      font-size:18px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>Todo App</h1>
+
+    <!-- Status -->
+
+    <div class="status-box">
+
+      <p>Total: <span id="totalTask">0</span></p>
+
+      <p>Completed: <span id="completedTask">0</span></p>
+
+      <p>Pending: <span id="pendingTask">0</span></p>
+
+    </div>
+
+    <!-- Input -->
+
+    <div class="input-area">
+
+      <input 
+        type="text" 
+        id="taskInput"
+        placeholder="Enter task..."
+      >
+
+      <button id="addBtn">
+        Add
+      </button>
+
+    </div>
+
+    <!-- Error -->
+
+    <p class="error" id="error"></p>
+
+    <!-- Task List -->
+
+    <div class="task-list" id="taskList"></div>
+
+    <!-- Empty Message -->
+
+    <p class="empty" id="emptyMessage">
+      No Tasks Available
+    </p>
+
+  </div>
+
+  <script>
+
+    // =========================
+    // DOM
+    // =========================
+
+    const taskInput = document.getElementById("taskInput");
+
+    const addBtn = document.getElementById("addBtn");
+
+    const taskList = document.getElementById("taskList");
+
+    const error = document.getElementById("error");
+
+    const totalTask = document.getElementById("totalTask");
+
+    const completedTask = document.getElementById("completedTask");
+
+    const pendingTask = document.getElementById("pendingTask");
+
+    const emptyMessage = document.getElementById("emptyMessage");
+
+    // =========================
+    // LocalStorage
+    // =========================
+
+    let tasks = JSON.parse(
+      localStorage.getItem("tasks")
+    ) || [];
+
+    // =========================
+    // Render Tasks
+    // =========================
+
+    function renderTasks(){
+
+      taskList.innerHTML = "";
+
+      // Empty Message
+
+      if(tasks.length === 0){
+
+        emptyMessage.style.display = "block";
+
+      }else{
+
+        emptyMessage.style.display = "none";
+      }
+
+      // Loop
+
+      tasks.map((task, index) => {
+
+        const div = document.createElement("div");
+
+        div.classList.add("task");
+
+        if(task.completed){
+          div.classList.add("completed");
+        }
+
+        // Template Literal
+
+        div.innerHTML = `
+        
+          <span>${task.name}</span>
+
+          <div class="buttons">
+
+            <button 
+              class="done-btn"
+              onclick="toggleTask(${index})"
+            >
+              ${task.completed ? "Undo" : "Done"}
+            </button>
+
+            <button 
+              class="edit-btn"
+              onclick="editTask(${index})"
+            >
+              Edit
+            </button>
+
+            <button 
+              class="delete-btn"
+              onclick="deleteTask(${index})"
+            >
+              Delete
+            </button>
+
+          </div>
+        
+        `;
+
+        taskList.appendChild(div);
+
+      });
+
+      // Counts
+
+      totalTask.innerText = tasks.length;
+
+      const completed = tasks.filter(
+        task => task.completed
+      ).length;
+
+      completedTask.innerText = completed;
+
+      pendingTask.innerText =
+        tasks.length - completed;
+
+      // Save LocalStorage
+
+      localStorage.setItem(
+        "tasks",
+        JSON.stringify(tasks)
+      );
+
+    }
+
+    // =========================
+    // Add Task
+    // =========================
+
+    addBtn.addEventListener("click", () => {
+
+      const taskText = taskInput.value.trim();
+
+      // Validation
+
+      if(taskText === ""){
+
+        error.innerText =
+          "Task cannot be empty";
+
+        return;
+      }
+
+      error.innerText = "";
+
+      // Add Array Object
+
+      tasks.push({
+
+        name: taskText,
+
+        completed:false
+
+      });
+
+      taskInput.value = "";
+
+      renderTasks();
+
+    });
+
+    // =========================
+    // Delete Task
+    // =========================
+
+    function deleteTask(index){
+
+      tasks.splice(index, 1);
+
+      renderTasks();
+
+    }
+
+    // =========================
+    // Done / Undo
+    // =========================
+
+    function toggleTask(index){
+
+      tasks[index].completed =
+        !tasks[index].completed;
+
+      renderTasks();
+
+    }
+
+    // =========================
+    // Edit Task
+    // =========================
+
+    function editTask(index){
+
+      const updatedTask = prompt(
+        "Edit Task",
+        tasks[index].name
+      );
+
+      if(
+        updatedTask === null ||
+        updatedTask.trim() === ""
+      ){
+        return;
+      }
+
+      tasks[index].name =
+        updatedTask.trim();
+
+      renderTasks();
+
+    }
+
+    // =========================
+    // Initial Render
+    // =========================
+
+    renderTasks();
+
+  </script>
+
+</body>
+</html>

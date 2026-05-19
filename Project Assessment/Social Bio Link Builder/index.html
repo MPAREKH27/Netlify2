@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Bio Link Builder</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      background:#0f172a;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .container{
+      width:100%;
+      max-width:550px;
+      background:white;
+      padding:30px;
+      border-radius:20px;
+      box-shadow:0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    h1{
+      text-align:center;
+      color:#0f172a;
+      margin-bottom:25px;
+      font-size:35px;
+    }
+
+    /* Form */
+
+    .form-box{
+      display:flex;
+      flex-direction:column;
+      gap:15px;
+      margin-bottom:20px;
+    }
+
+    .form-box input{
+      padding:14px;
+      border:2px solid #ccc;
+      border-radius:10px;
+      font-size:16px;
+      outline:none;
+    }
+
+    .form-box button{
+      padding:14px;
+      border:none;
+      border-radius:10px;
+      background:#2563eb;
+      color:white;
+      font-size:17px;
+      cursor:pointer;
+    }
+
+    .form-box button:hover{
+      background:#1d4ed8;
+    }
+
+    /* Error */
+
+    .error{
+      color:red;
+      font-size:14px;
+      margin-bottom:15px;
+    }
+
+    /* Preview */
+
+    .preview-title{
+      margin-bottom:15px;
+      color:#0f172a;
+    }
+
+    .preview{
+      display:flex;
+      flex-direction:column;
+      gap:15px;
+    }
+
+    .link-card{
+      background:#f1f5f9;
+      padding:15px;
+      border-radius:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .link-btn{
+      text-decoration:none;
+      background:#2563eb;
+      color:white;
+      padding:12px 18px;
+      border-radius:8px;
+      font-weight:bold;
+    }
+
+    .remove-btn{
+      border:none;
+      background:#dc2626;
+      color:white;
+      padding:10px 14px;
+      border-radius:8px;
+      cursor:pointer;
+    }
+
+    .empty{
+      text-align:center;
+      color:gray;
+      margin-top:15px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>Social Bio Link Builder</h1>
+
+    <!-- Form -->
+
+    <div class="form-box">
+
+      <input
+        type="text"
+        id="titleInput"
+        placeholder="Enter Title"
+      >
+
+      <input
+        type="text"
+        id="urlInput"
+        placeholder="https://example.com"
+      >
+
+      <button id="addBtn">
+        Add Link
+      </button>
+
+    </div>
+
+    <!-- Error -->
+
+    <p class="error" id="error"></p>
+
+    <!-- Preview -->
+
+    <h2 class="preview-title">
+      Profile Preview
+    </h2>
+
+    <div class="preview" id="preview"></div>
+
+    <p class="empty" id="emptyMessage">
+      No Links Added
+    </p>
+
+  </div>
+
+  <script>
+
+    // =========================
+    // DOM
+    // =========================
+
+    const titleInput =
+      document.getElementById("titleInput");
+
+    const urlInput =
+      document.getElementById("urlInput");
+
+    const addBtn =
+      document.getElementById("addBtn");
+
+    const preview =
+      document.getElementById("preview");
+
+    const error =
+      document.getElementById("error");
+
+    const emptyMessage =
+      document.getElementById("emptyMessage");
+
+    // =========================
+    // LocalStorage
+    // =========================
+
+    let links = JSON.parse(
+
+      localStorage.getItem("bioLinks")
+
+    ) || [];
+
+    // =========================
+    // Render Links
+    // =========================
+
+    function renderLinks(){
+
+      preview.innerHTML = "";
+
+      if(links.length === 0){
+
+        emptyMessage.style.display =
+          "block";
+
+      }else{
+
+        emptyMessage.style.display =
+          "none";
+      }
+
+      // Loop
+
+      links.map((link, index) => {
+
+        const card =
+          document.createElement("div");
+
+        card.classList.add("link-card");
+
+        // Template Literal
+
+        card.innerHTML = `
+        
+          <a
+            href="${link.url}"
+            target="_blank"
+            class="link-btn"
+          >
+            ${link.title}
+          </a>
+
+          <button
+            class="remove-btn"
+            onclick="removeLink(${index})"
+          >
+            Remove
+          </button>
+        
+        `;
+
+        preview.appendChild(card);
+
+      });
+
+      // Save LocalStorage
+
+      localStorage.setItem(
+
+        "bioLinks",
+
+        JSON.stringify(links)
+
+      );
+
+    }
+
+    // =========================
+    // URL Validation
+    // =========================
+
+    function isValidURL(url){
+
+      const pattern = /^https:\/\/.+/;
+
+      return pattern.test(url);
+
+    }
+
+    // =========================
+    // Add Link
+    // =========================
+
+    addBtn.addEventListener("click", () => {
+
+      const title =
+        titleInput.value.trim();
+
+      const url =
+        urlInput.value.trim();
+
+      // Validation
+
+      if(title === "" || url === ""){
+
+        error.innerText =
+          "Please fill all fields";
+
+        return;
+      }
+
+      // URL Check
+
+      if(!isValidURL(url)){
+
+        error.innerText =
+          "URL must include https://";
+
+        return;
+      }
+
+      error.innerText = "";
+
+      // Object
+
+      const linkObject = {
+
+        title:title,
+
+        url:url
+
+      };
+
+      // Store in Array
+
+      links.push(linkObject);
+
+      // Clear Inputs
+
+      titleInput.value = "";
+
+      urlInput.value = "";
+
+      // Render
+
+      renderLinks();
+
+    });
+
+    // =========================
+    // Remove Link
+    // =========================
+
+    function removeLink(index){
+
+      links.splice(index, 1);
+
+      renderLinks();
+
+    }
+
+    // =========================
+    // Initial Render
+    // =========================
+
+    renderLinks();
+
+  </script>
+
+</body>
+</html>

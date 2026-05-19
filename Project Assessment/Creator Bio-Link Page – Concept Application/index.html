@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Bio-Link Builder</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      background:#0f172a;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      padding:20px;
+    }
+
+    .container{
+      width:100%;
+      max-width:500px;
+      background:white;
+      padding:25px;
+      border-radius:15px;
+      box-shadow:0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    .profile{
+      text-align:center;
+      margin-bottom:25px;
+    }
+
+    .profile img{
+      width:100px;
+      height:100px;
+      border-radius:50%;
+      object-fit:cover;
+      margin-bottom:10px;
+    }
+
+    .profile h2{
+      color:#0f172a;
+      margin-bottom:5px;
+    }
+
+    .badge{
+      color:green;
+      font-weight:bold;
+      margin-bottom:10px;
+    }
+
+    .followers{
+      color:#555;
+      margin-bottom:15px;
+    }
+
+    .input-box{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-bottom:20px;
+    }
+
+    .input-box input{
+      padding:12px;
+      border:2px solid #ccc;
+      border-radius:8px;
+      font-size:15px;
+    }
+
+    .input-box button{
+      padding:12px;
+      border:none;
+      background:#2563eb;
+      color:white;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .input-box button:hover{
+      background:#1d4ed8;
+    }
+
+    .error{
+      color:red;
+      margin-bottom:15px;
+      font-size:14px;
+    }
+
+    .links{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .link-card{
+      background:#f1f5f9;
+      padding:12px;
+      border-radius:10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .link-info a{
+      text-decoration:none;
+      color:#2563eb;
+      font-weight:bold;
+    }
+
+    .buttons{
+      display:flex;
+      gap:8px;
+    }
+
+    .buttons button{
+      border:none;
+      padding:8px 10px;
+      border-radius:6px;
+      color:white;
+      cursor:pointer;
+    }
+
+    .edit-btn{
+      background:#f59e0b;
+    }
+
+    .delete-btn{
+      background:#dc2626;
+    }
+
+    .empty{
+      text-align:center;
+      color:gray;
+      margin-top:10px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- Profile -->
+    <div class="profile">
+
+      <img src="My Photo.png" alt="profile">
+
+      <h2 id="profileName"></h2>
+
+      <p class="badge" id="badge"></p>
+
+      <p class="followers">
+        Followers: <span id="followersCount"></span>
+      </p>
+
+    </div>
+
+    <!-- Input -->
+    <div class="input-box">
+
+      <input type="text" id="titleInput" placeholder="Social Title">
+
+      <input type="url" id="urlInput" placeholder="Social URL">
+
+      <button id="addBtn">Add Link</button>
+
+    </div>
+
+    <!-- Error -->
+    <p class="error" id="error"></p>
+
+    <!-- Links -->
+    <div class="links" id="linksContainer"></div>
+
+    <!-- Empty -->
+    <p class="empty" id="emptyMessage">
+      No Links Added
+    </p>
+
+  </div>
+
+  <script>
+
+    // =========================
+    // Variables & DOM Selection
+    // =========================
+
+    const profileName = document.getElementById("profileName");
+    const followersCount = document.getElementById("followersCount");
+    const badge = document.getElementById("badge");
+
+    const titleInput = document.getElementById("titleInput");
+    const urlInput = document.getElementById("urlInput");
+
+    const addBtn = document.getElementById("addBtn");
+
+    const linksContainer = document.getElementById("linksContainer");
+
+    const error = document.getElementById("error");
+
+    const emptyMessage = document.getElementById("emptyMessage");
+
+    // =========================
+    // Creator Data
+    // =========================
+
+    let creator = {
+      name: "Mohit Parekh",
+      followers: 1700
+    };
+
+    // =========================
+    // Dynamic Profile Render
+    // =========================
+
+    profileName.innerText = creator.name;
+
+    followersCount.innerText = creator.followers;
+
+    // Conditional Logic
+    if(creator.followers > 1000){
+      badge.innerText = "✔ Verified Creator";
+    }
+
+    // =========================
+    // LocalStorage
+    // =========================
+
+    let links = JSON.parse(localStorage.getItem("socialLinks")) || [];
+
+    // =========================
+    // Render Links
+    // =========================
+
+    function renderLinks(){
+
+      linksContainer.innerHTML = "";
+
+      // filter()
+      const validLinks = links.filter(link => link.title !== "");
+
+      if(validLinks.length === 0){
+        emptyMessage.style.display = "block";
+      }else{
+        emptyMessage.style.display = "none";
+      }
+
+      // Loop + Template Literals
+      validLinks.map((link, index) => {
+
+        const card = document.createElement("div");
+
+        card.classList.add("link-card");
+
+        card.innerHTML = `
+        
+          <div class="link-info">
+            <p>${link.title}</p>
+
+            <a href="${link.url}" target="_blank">
+              Visit Link
+            </a>
+          </div>
+
+          <div class="buttons">
+
+            <button class="edit-btn" onclick="editLink(${index})">
+              Edit
+            </button>
+
+            <button class="delete-btn" onclick="deleteLink(${index})">
+              Delete
+            </button>
+
+          </div>
+        
+        `;
+
+        linksContainer.appendChild(card);
+
+      });
+
+      // Save LocalStorage
+      localStorage.setItem(
+        "socialLinks",
+        JSON.stringify(links)
+      );
+
+    }
+
+    // =========================
+    // Add Link
+    // =========================
+
+    addBtn.addEventListener("click", () => {
+
+      const title = titleInput.value.trim();
+
+      const url = urlInput.value.trim();
+
+      // Validation
+      if(title === "" || url === ""){
+
+        error.innerText = "Please fill all fields";
+
+        return;
+      }
+
+      error.innerText = "";
+
+      // Array of Objects
+      links.push({
+        title:title,
+        url:url
+      });
+
+      titleInput.value = "";
+      urlInput.value = "";
+
+      renderLinks();
+
+    });
+
+    // =========================
+    // Delete Link
+    // =========================
+
+    function deleteLink(index){
+
+      links.splice(index, 1);
+
+      renderLinks();
+
+    }
+
+    // =========================
+    // Edit Link
+    // =========================
+
+    function editLink(index){
+
+      const newTitle = prompt(
+        "Edit Title",
+        links[index].title
+      );
+
+      const newUrl = prompt(
+        "Edit URL",
+        links[index].url
+      );
+
+      if(newTitle === null || newUrl === null){
+        return;
+      }
+
+      links[index].title = newTitle.trim();
+
+      links[index].url = newUrl.trim();
+
+      renderLinks();
+
+    }
+
+    // =========================
+    // Event Delegation Example
+    // =========================
+
+    linksContainer.addEventListener("click", (e) => {
+
+      if(e.target.classList.contains("delete-btn")){
+        console.log("Delete Button Clicked");
+      }
+
+    });
+
+    // =========================
+    // Initial Render
+    // =========================
+
+    renderLinks();
+
+  </script>
+
+</body>
+</html>
